@@ -76,7 +76,6 @@ async def parse_document_text(raw_text: str):
         print(f"AI Parse Error: {e}")
         return []
 
-# --- THIS FUNCTION MUST BE HERE FOR MAIN.PY TO WORK ---
 async def parse_receipt_image(file_content: bytes):
     if not os.getenv("OPENAI_API_KEY"): return []
 

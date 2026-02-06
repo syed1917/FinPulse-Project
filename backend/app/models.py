@@ -5,7 +5,6 @@ from app.database import Base
 from pydantic import BaseModel
 from typing import List, Optional, Dict
 
-# DATABASE MODELS
 class Company(Base):
     __tablename__ = "companies"
 

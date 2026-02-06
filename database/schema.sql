@@ -1,10 +1,3 @@
--- database/schema.sql
-
--- NOTE: Create the database manually first if it doesn't exist
--- CREATE DATABASE finpulse_db;
-
--- Run the following lines INSIDE the 'finpulse_db' database:
-
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE companies (
