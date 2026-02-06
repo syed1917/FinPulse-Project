@@ -3,15 +3,28 @@ import axios from 'axios';
 import DashboardLayout from './components/DashboardLayout';
 import FinancialPulse from './components/FinancialPulse';
 import Reports from './components/Reports';
-import { UploadCloud, Globe } from 'lucide-react';
+import { UploadCloud, Globe, Briefcase } from 'lucide-react'; // Added Briefcase icon
 import { translations } from './translations';
+
+const INDUSTRIES = [
+    "Retail",
+    "Tech / SaaS",
+    "Manufacturing",
+    "Services",
+    "Healthcare",
+    "Hospitality",
+    "Construction"
+];
 
 function App() {
     const [transactions, setTransactions] = useState([]);
     const [reportData, setReportData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [currentView, setCurrentView] = useState('dashboard');
+
+    // --- STATE FOR SETTINGS ---
     const [language, setLanguage] = useState('en');
+    const [industry, setIndustry] = useState('Retail'); // Default
 
     const t = translations[language] || translations['en'];
 
@@ -22,7 +35,7 @@ function App() {
         try {
             const response = await axios.post('http://localhost:8000/api/v1/generate-report', {
                 company_name: "User Corp",
-                industry: "Retail",
+                industry: industry, // <--- NOW DYNAMIC
                 language: language,
                 transactions: transactions
             });
@@ -45,10 +58,9 @@ function App() {
             });
 
             if (response.data.transactions) {
-                // Assign ID based on index if missing (for frontend key)
                 const txnsWithId = response.data.transactions.map((t, i) => ({
                     ...t,
-                    id: t.id || `demo-corp-id-${i}` // Ensure ID matches backend format
+                    id: t.id || `demo-corp-id-${i}`
                 }));
                 setTransactions(txnsWithId);
                 setCurrentView('dashboard');
@@ -61,20 +73,19 @@ function App() {
         }
     };
 
-    // --- NEW: Update a single transaction locally & trigger refresh ---
     const handleTransactionUpdate = (updatedTxn) => {
         const newTransactions = transactions.map(t =>
             t.id === updatedTxn.id ? { ...t, ...updatedTxn } : t
         );
         setTransactions(newTransactions);
-        // The useEffect below will automatically re-run fetchReport()!
     };
 
+    // Re-run analysis when transactions, language, OR industry changes
     useEffect(() => {
         if (transactions.length > 0) {
             fetchReport();
         }
-    }, [transactions, language]);
+    }, [transactions, language, industry]);
 
     return (
         <DashboardLayout
@@ -92,7 +103,23 @@ function App() {
                             <p className="text-gray-500 mt-1">{t.dashboardSubtitle}</p>
                         </div>
 
-                        <div className="flex items-center space-x-3">
+                        <div className="flex flex-wrap items-center gap-3">
+
+                            {/* INDUSTRY SELECTOR */}
+                            <div className="flex items-center bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+                                <Briefcase size={16} className="text-gray-500 mr-2" />
+                                <select
+                                    value={industry}
+                                    onChange={(e) => setIndustry(e.target.value)}
+                                    className="bg-transparent border-none text-sm font-medium text-gray-700 focus:ring-0 cursor-pointer outline-none"
+                                >
+                                    {INDUSTRIES.map(ind => (
+                                        <option key={ind} value={ind}>{ind}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* LANGUAGE SELECTOR */}
                             <div className="flex items-center bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
                                 <Globe size={16} className="text-gray-500 mr-2" />
                                 <select
@@ -145,7 +172,7 @@ function App() {
                 <Reports
                     transactions={transactions}
                     t={t}
-                    onUpdate={handleTransactionUpdate} // PASS THE HANDLER
+                    onUpdate={handleTransactionUpdate}
                 />
             )}
 
