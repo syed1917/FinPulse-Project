@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Download, FileBarChart, Edit2, Save, X, Check } from 'lucide-react';
 import axios from 'axios';
 
+// --- PRODUCTION CHANGE: DYNAMIC URL ---
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const formatCurrency = (value) => {
     if (value === null || value === undefined) return "$0.00";
     return new Intl.NumberFormat('en-US', {
@@ -23,7 +26,6 @@ export default function Reports({ transactions, t, onUpdate }) {
     const [editForm, setEditForm] = useState({});
     const [saving, setSaving] = useState(false);
 
-    // Group categories for summary cards
     const categorySummary = transactions.reduce((acc, txn) => {
         acc[txn.category] = (acc[txn.category] || 0) + txn.amount;
         return acc;
@@ -42,13 +44,12 @@ export default function Reports({ transactions, t, onUpdate }) {
     const saveEdit = async () => {
         setSaving(true);
         try {
-            // 1. Call Backend
-            await axios.put(`http://localhost:8000/api/v1/transactions/${editForm.id}`, {
+            // USE API_BASE_URL
+            await axios.put(`${API_BASE_URL}/api/v1/transactions/${editForm.id}`, {
                 category: editForm.category,
                 description: editForm.description
             });
 
-            // 2. Update Frontend Parent State
             onUpdate(editForm);
             setEditingId(null);
         } catch (error) {
@@ -75,7 +76,6 @@ export default function Reports({ transactions, t, onUpdate }) {
 
     return (
         <div className="space-y-6 pb-10">
-            {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                 <div>
                     <h2 className="text-xl font-bold text-gray-800 flex items-center">
@@ -92,7 +92,6 @@ export default function Reports({ transactions, t, onUpdate }) {
                 </button>
             </div>
 
-            {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {Object.entries(categorySummary).map(([cat, amount]) => (
                     <div key={cat} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
@@ -104,7 +103,6 @@ export default function Reports({ transactions, t, onUpdate }) {
                 ))}
             </div>
 
-            {/* Table */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
                     <h3 className="text-sm font-semibold text-gray-700">Transaction Ledger</h3>
@@ -123,12 +121,10 @@ export default function Reports({ transactions, t, onUpdate }) {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {transactions.map((txn, idx) => (
                                 <tr key={txn.id || idx} className="hover:bg-gray-50 transition">
-                                    {/* DATE */}
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
                                         {txn.date}
                                     </td>
 
-                                    {/* DESCRIPTION */}
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         {editingId === txn.id ? (
                                             <input
@@ -142,7 +138,6 @@ export default function Reports({ transactions, t, onUpdate }) {
                                         )}
                                     </td>
 
-                                    {/* CATEGORY */}
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                                         {editingId === txn.id ? (
                                             <select
@@ -160,12 +155,10 @@ export default function Reports({ transactions, t, onUpdate }) {
                                         )}
                                     </td>
 
-                                    {/* AMOUNT */}
                                     <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-bold ${txn.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                         {txn.amount >= 0 ? '+' : ''}{formatCurrency(txn.amount)}
                                     </td>
 
-                                    {/* ACTIONS */}
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         {editingId === txn.id ? (
                                             <div className="flex justify-end space-x-2">

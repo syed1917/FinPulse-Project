@@ -3,8 +3,11 @@ import axios from 'axios';
 import DashboardLayout from './components/DashboardLayout';
 import FinancialPulse from './components/FinancialPulse';
 import Reports from './components/Reports';
-import { UploadCloud, Globe, Briefcase } from 'lucide-react'; // Added Briefcase icon
+import { UploadCloud, Globe, Briefcase } from 'lucide-react';
 import { translations } from './translations';
+
+// --- PRODUCTION CHANGE: DYNAMIC URL ---
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const INDUSTRIES = [
     "Retail",
@@ -22,9 +25,8 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [currentView, setCurrentView] = useState('dashboard');
 
-    // --- STATE FOR SETTINGS ---
     const [language, setLanguage] = useState('en');
-    const [industry, setIndustry] = useState('Retail'); // Default
+    const [industry, setIndustry] = useState('Retail');
 
     const t = translations[language] || translations['en'];
 
@@ -33,9 +35,10 @@ function App() {
 
         setLoading(true);
         try {
-            const response = await axios.post('http://localhost:8000/api/v1/generate-report', {
+            // USE API_BASE_URL
+            const response = await axios.post(`${API_BASE_URL}/api/v1/generate-report`, {
                 company_name: "User Corp",
-                industry: industry, // <--- NOW DYNAMIC
+                industry: industry,
                 language: language,
                 transactions: transactions
             });
@@ -53,7 +56,8 @@ function App() {
 
         try {
             setLoading(true);
-            const response = await axios.post('http://localhost:8000/api/v1/upload-file', formData, {
+            // USE API_BASE_URL
+            const response = await axios.post(`${API_BASE_URL}/api/v1/upload-file`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
@@ -80,7 +84,6 @@ function App() {
         setTransactions(newTransactions);
     };
 
-    // Re-run analysis when transactions, language, OR industry changes
     useEffect(() => {
         if (transactions.length > 0) {
             fetchReport();
@@ -94,7 +97,6 @@ function App() {
             onFileUpload={handleFileUpload}
             t={t}
         >
-
             {currentView === 'dashboard' && (
                 <>
                     <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -104,8 +106,6 @@ function App() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">
-
-                            {/* INDUSTRY SELECTOR */}
                             <div className="flex items-center bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
                                 <Briefcase size={16} className="text-gray-500 mr-2" />
                                 <select
@@ -119,7 +119,6 @@ function App() {
                                 </select>
                             </div>
 
-                            {/* LANGUAGE SELECTOR */}
                             <div className="flex items-center bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
                                 <Globe size={16} className="text-gray-500 mr-2" />
                                 <select
@@ -175,7 +174,6 @@ function App() {
                     onUpdate={handleTransactionUpdate}
                 />
             )}
-
         </DashboardLayout>
     );
 }
